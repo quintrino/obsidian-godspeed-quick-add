@@ -1,0 +1,108 @@
+name: Test and release
+
+# Every push and pull request runs the checks. Every push to the main branch that passes them also publishes a
+# GitHub release, bumping the patch version first when the current one is already released. Obsidian only offers
+# an update when the release version is higher, so each push needs a new version.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Also checks that manifest.json, package.json and versions.json agree on the version
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-files
+          path: |
+            main.js
+            manifest.json
+            styles.css
+
+  release:
+    name: Release new version
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    # One release at a time, and never cancel one that has started
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      # The first release uses the version already in manifest.json. After that, each push bumps the patch version
+      # (package.json, package-lock.json, manifest.json, versions.json) and commits it back. Pushes made with the
+      # workflow's own token do not start another run. For a minor or major release, run `npm version minor`
+      # (or major) yourself before pushing: an unreleased version is released as it is.
+      - name: Pick the version to release
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./manifest.json').version")
+          # Obsidian installs the release whose tag equals the manifest version: x.y.z, no "v"
+          if ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::manifest.json version '${version}' is not x.y.z"
+            exit 1
+          fi
+          if gh release view "${version}" >/dev/null 2>&1; then
+            echo "Version ${version} is already released; bumping the patch version."
+            npm version patch
+            version=$(node -p "require('./manifest.json').version")
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package.json package-lock.json manifest.json versions.json
+            git commit -m "Release ${version}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      # A signed record of how the files were built, recommended by the community directory
+      - name: Generate artifact attestation
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      # Creates the tag (named exactly like the version) on the release commit, and the release with the three
+      # files Obsidian installs.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.plan.outputs.version }}" main.js manifest.json styles.css \
+            --target "$(git rev-parse HEAD)" \
+            --title "${{ steps.plan.outputs.version }}" \
+            --generate-notes
