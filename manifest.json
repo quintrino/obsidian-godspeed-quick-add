@@ -1,7 +1,7 @@
 {
   "id": "godspeed-quick-add",
   "name": "Godspeed Quick Add",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "minAppVersion": "1.11.4",
   "description": "Send the current note, or the section you are in, to Godspeed as a task that links back to it.",
   "author": "Nick Wolf",

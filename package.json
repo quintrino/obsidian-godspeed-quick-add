@@ -1,6 +1,6 @@
 {
   "name": "godspeed-quick-add",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Send the current Obsidian note to Godspeed as a task",
