@@ -132,7 +132,7 @@ export default class GodspeedQuickAddPlugin extends Plugin {
       try {
         const body = buildTask(
           { vaultName, path: file.path, heading },
-          { prefix, target: this.settings.quickAddTarget, listId: this.settings.listId }
+          { prefix, target: this.settings.quickAddTarget, linkTarget: this.settings.linkTarget, listId: this.settings.listId }
         );
         await createTask(requestGodspeed, apiKey, body);
         results.push({ name });

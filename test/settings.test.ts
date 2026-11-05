@@ -20,17 +20,18 @@ test('any extra-text target other than "notes" means the title', () => {
 });
 
 test('saved values are kept', () => {
-  assert.deepEqual(normalizeSettings({ apiKeySecretId: 'my-key', listId: 'l9', quickAddTarget: 'notes' }), {
+  assert.deepEqual(normalizeSettings({ apiKeySecretId: 'my-key', listId: 'l9', quickAddTarget: 'notes', linkTarget: 'notes' }), {
     apiKeySecretId: 'my-key',
     listId: 'l9',
     quickAddTarget: 'notes',
+    linkTarget: 'notes',
   });
 });
 
 test('settings never carry the key itself', () => {
   const settings = normalizeSettings({ apiKeySecretId: 'k', apiKey: 'sk-live-123' });
   assert.equal(JSON.stringify(settings).includes('sk-live-123'), false);
-  assert.deepEqual(Object.keys(settings).sort(), ['apiKeySecretId', 'listId', 'quickAddTarget']);
+  assert.deepEqual(Object.keys(settings).sort(), ['apiKeySecretId', 'linkTarget', 'listId', 'quickAddTarget']);
 });
 
 test('the key is read from secret storage by name', () => {

@@ -43,6 +43,20 @@ export class GodspeedSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName('Obsidian link goes in')
+      .setDesc('Where the link back to the note is saved. In the notes, the title is just the note\'s name.')
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption('title', 'Task title')
+          .addOption('notes', 'Task notes')
+          .setValue(this.plugin.settings.linkTarget)
+          .onChange(async (value) => {
+            this.plugin.settings.linkTarget = value === 'notes' ? 'notes' : 'title';
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
       .setName('Extra text goes in')
       .setDesc('Where the text you type in the extra text command is saved.')
       .addDropdown((dropdown) =>

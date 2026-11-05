@@ -57,3 +57,22 @@ test('a non-markdown file keeps its extension in the title', () => {
   const title = buildTitle({ vaultName: 'V', path: 'Boards/Plan.canvas' });
   assert.equal(title, 'title: Plan.canvas link: obsidian://open?vault=V&file=Boards%2FPlan.canvas');
 });
+
+test('the link can go in the notes, leaving the plain name as the title', () => {
+  assert.deepEqual(buildTask(note, { linkTarget: 'notes' }), { title: 'Constitution', notes: url });
+  assert.deepEqual(buildTask({ ...note, heading: 'Section 3' }, { linkTarget: 'notes' }), {
+    title: 'Constitution > Section 3',
+    notes: 'obsidian://open?vault=My%20Vault&file=Law%2FConstitution%23Section%203',
+  });
+});
+
+test('with the link in the notes, extra text still goes where it is told', () => {
+  assert.deepEqual(buildTask(note, { linkTarget: 'notes', prefix: 'Call', target: 'title' }), {
+    title: 'Call Constitution',
+    notes: url,
+  });
+  assert.deepEqual(buildTask(note, { linkTarget: 'notes', prefix: 'Call', target: 'notes' }), {
+    title: 'Constitution',
+    notes: `Call\n\n${url}`,
+  });
+});

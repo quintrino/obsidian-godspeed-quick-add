@@ -39,7 +39,8 @@ Open Settings > Godspeed Quick Add.
    command-palette command "Copy API access token". The key is stored in Obsidian's secret
    storage, not in your vault, so it does not travel with a synced or git-tracked vault.
 2. **List ID** (optional): leave blank for your Inbox. In Godspeed, run "Copy list ID" on a list.
-3. **Extra text goes in**: the task title (at the front, the default) or the task notes.
+3. **Obsidian link goes in**: the task title (the default) or the task notes. With the notes, the title is just the note's name (and heading) and the notes hold the `obsidian://` link.
+4. **Extra text goes in**: the task title (at the front, the default) or the task notes. If both go to the notes, the extra text comes first, then the link.
 
 ## Use
 
